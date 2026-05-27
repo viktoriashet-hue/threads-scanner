@@ -34,25 +34,26 @@ async def search(
     date_to: Optional[str] = Query(None),
     limit: int = Query(20),
 ):
-    async with httpx.AsyncClient(timeout=90) as client:
+    async with httpx.AsyncClient(timeout=120) as client:
 
         run_resp = await client.post(
             f"https://api.apify.com/v2/acts/{ACTOR_ID}/runs",
             params={"token": APIFY_TOKEN},
             json={
-                "searchKeywords": [q],
-                "maxItemsPerKeyword": limit,
+                "keywords": [q],
+                "outputFormat": "json",
                 "sortByRecent": sort == "recent",
+                "proxyConfiguration": {"useApifyProxy": False}
             }
         )
 
         if run_resp.status_code != 201:
-            return JSONResponse({"error": f"Не удалось запустить скрапер: {run_resp.text}", "posts": [], "total": 0})
+            return JSONResponse({"error": f"Ошибка запуска: {run_resp.text}", "posts": [], "total": 0})
 
         run_id = run_resp.json()["data"]["id"]
 
         for _ in range(40):
-            await asyncio.sleep(3)
+            await asyncio.sleep(4)
             status_resp = await client.get(
                 f"https://api.apify.com/v2/actor-runs/{run_id}",
                 params={"token": APIFY_TOKEN}
@@ -61,7 +62,7 @@ async def search(
             if status == "SUCCEEDED":
                 break
             if status in ["FAILED", "ABORTED", "TIMED-OUT"]:
-                return JSONResponse({"error": f"Скрапер завершился с ошибкой: {status}", "posts": [], "total": 0})
+                return JSONResponse({"error": f"Ошибка: {status}", "posts": [], "total": 0})
 
         dataset_id = status_resp.json()["data"]["defaultDatasetId"]
         results_resp = await client.get(
@@ -73,7 +74,7 @@ async def search(
         posts = []
 
         for item in items:
-            ts = item.get("timestamp") or item.get("taken_at") or item.get("createdAt", "")
+            ts = item.get("created_at") or item.get("taken_at", "")
             try:
                 if isinstance(ts, (int, float)):
                     ts = datetime.fromtimestamp(ts).strftime("%d.%m.%Y %H:%M")
@@ -83,12 +84,13 @@ async def search(
                 ts = ""
 
             posts.append({
-                "text": str(item.get("text") or item.get("content") or item.get("caption") or "")[:600],
-                "like_count": int(item.get("likesCount") or item.get("like_count") or 0),
-                "reply_count": int(item.get("repliesCount") or item.get("reply_count") or 0),
-                "repost_count": int(item.get("repostsCount") or item.get("repost_count") or 0),
+                "text": str(item.get("text") or "")[:600],
+                "like_count": int(item.get("like_count") or 0),
+                "reply_count": int(item.get("reply_count") or 0),
+                "repost_count": int(item.get("repost_count") or 0),
                 "timestamp": ts,
-                "username": str(item.get("username") or item.get("ownerUsername") or ""),
+                "username": str(item.get("author") or ""),
+                "url": str(item.get("url") or ""),
             })
 
         if date_from or date_to:
