@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-APIFY_TOKEN = "apify_api_XLGUhUI0AKBH0iMkpArUdDoFHI013R05LASg"
+APIFY_TOKEN = os.environ.get("APIFY_TOKEN", "")
 ACTOR_ID = "watcher.data~search-threads-by-keywords"
 
 
@@ -33,9 +34,8 @@ async def search(
     date_to: Optional[str] = Query(None),
     limit: int = Query(20),
 ):
-    async with httpx.AsyncClient(timeout=60) as client:
+    async with httpx.AsyncClient(timeout=90) as client:
 
-        # Запускаем актор
         run_resp = await client.post(
             f"https://api.apify.com/v2/acts/{ACTOR_ID}/runs",
             params={"token": APIFY_TOKEN},
@@ -47,12 +47,11 @@ async def search(
         )
 
         if run_resp.status_code != 201:
-            return JSONResponse({"error": "Не удалось запустить скрапер", "posts": [], "total": 0})
+            return JSONResponse({"error": f"Не удалось запустить скрапер: {run_resp.text}", "posts": [], "total": 0})
 
         run_id = run_resp.json()["data"]["id"]
 
-        # Ждём завершения
-        for _ in range(30):
+        for _ in range(40):
             await asyncio.sleep(3)
             status_resp = await client.get(
                 f"https://api.apify.com/v2/actor-runs/{run_id}",
@@ -64,7 +63,6 @@ async def search(
             if status in ["FAILED", "ABORTED", "TIMED-OUT"]:
                 return JSONResponse({"error": f"Скрапер завершился с ошибкой: {status}", "posts": [], "total": 0})
 
-        # Получаем результаты
         dataset_id = status_resp.json()["data"]["defaultDatasetId"]
         results_resp = await client.get(
             f"https://api.apify.com/v2/datasets/{dataset_id}/items",
@@ -72,8 +70,8 @@ async def search(
         )
 
         items = results_resp.json()
-
         posts = []
+
         for item in items:
             ts = item.get("timestamp") or item.get("taken_at") or item.get("createdAt", "")
             try:
@@ -93,7 +91,6 @@ async def search(
                 "username": str(item.get("username") or item.get("ownerUsername") or ""),
             })
 
-        # Фильтр по дате
         if date_from or date_to:
             filtered = []
             for p in posts:
