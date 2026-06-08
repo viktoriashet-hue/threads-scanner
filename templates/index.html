@@ -3,124 +3,839 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Threads Scanner</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<title>Scout.Threads — AI Pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;900&family=Onest:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--border:#222;--border2:#333;--text:#f0f0f0;--muted:#666;--accent:#e8ff47;--accent2:#47ffe8;--danger:#ff4747;}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
-header{padding:2rem 2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:1rem}
-.logo{width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
-.logo svg{width:20px;height:20px}
-h1{font-size:1.1rem;font-weight:500;letter-spacing:-0.02em}
-h1 span{color:var(--accent);font-family:'DM Mono',monospace}
-.badge{font-size:10px;font-family:'DM Mono',monospace;background:var(--surface2);border:1px solid var(--border2);padding:2px 8px;border-radius:4px;color:var(--muted);margin-left:auto}
-main{max-width:900px;margin:0 auto;padding:2rem}
-.search-panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem}
-.search-row{display:flex;gap:8px;margin-bottom:1rem}
-.search-input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border 0.2s}
-.search-input:focus{border-color:var(--accent)}
-.search-input::placeholder{color:var(--muted)}
-.btn-search{background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity 0.2s;white-space:nowrap}
-.btn-search:hover{opacity:0.85}
-.btn-search:disabled{opacity:0.4;cursor:not-allowed}
-.filters{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
-.filter-group label{display:block;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.08em}
-.filter-group select,.filter-group input[type=date],.filter-group input[type=number]{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none}
-.filter-group select:focus,.filter-group input:focus{border-color:var(--accent)}
-.filter-group select option{background:var(--surface2)}
-.status{display:none;align-items:center;gap:10px;padding:1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:1rem;font-size:13px;color:var(--muted)}
-.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0}
+:root{
+  --bg:#0d0d14;--bg2:#13131f;--bg3:#1a1a2a;
+  --border:#ffffff0f;--border2:#ffffff18;--border3:#ffffff28;
+  --text:#f0eee8;--muted:#6a6a7c;--muted2:#9a9aac;
+  --orange:#f5820a;--orange2:#ff9a2e;
+  --blue:#5b9cf6;--green:#47d67e;--red:#ff4f4f;--purple:#c490ff;
+  --card:#161622;--card2:#1c1c2e;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Onest',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;opacity:.04;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;background:rgba(13,13,20,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem}
+.h-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;height:54px;gap:1rem}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-dot{width:7px;height:7px;background:var(--orange);border-radius:50%;box-shadow:0 0 10px var(--orange);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 10px var(--orange)}50%{box-shadow:0 0 20px var(--orange),0 0 30px rgba(245,130,10,.3)}}
+.logo-name{font-family:'Unbounded',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase}
+.logo-name span{color:var(--orange)}
+.h-badge{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 9px;border:1px solid rgba(245,130,10,.4);color:var(--orange);border-radius:3px;letter-spacing:.12em;text-transform:uppercase}
+
+/* PIPELINE LAYOUT */
+main{max-width:1000px;margin:0 auto;padding:2rem}
+
+/* STEP */
+.step{margin-bottom:1.5rem;position:relative}
+.step-connector{display:flex;flex-direction:column;align-items:center;height:40px;margin:0 auto}
+.step-connector-line{width:1px;flex:1;background:linear-gradient(to bottom,var(--orange),transparent);opacity:.3}
+.step-connector-arrow{color:var(--orange);font-size:16px;line-height:1;opacity:.6;font-family:'JetBrains Mono',monospace}
+.step-connector.active .step-connector-line{opacity:.8;background:linear-gradient(to bottom,var(--orange),var(--orange))}
+.step-connector.active .step-connector-arrow{opacity:1}
+
+.step-card{background:var(--card);border:1px solid var(--border2);border-radius:14px;overflow:hidden;transition:border-color .3s}
+.step-card.active{border-color:rgba(245,130,10,.25)}
+.step-card.done{border-color:rgba(71,214,126,.2)}
+.step-card.locked{opacity:.5;pointer-events:none}
+
+.step-head{padding:14px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);cursor:pointer}
+.step-num{font-family:'JetBrains Mono',monospace;font-size:10px;width:24px;height:24px;border-radius:5px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--muted);letter-spacing:0;flex-shrink:0;transition:all .3s}
+.step-card.active .step-num{background:var(--orange);border-color:var(--orange);color:#000;font-weight:600}
+.step-card.done .step-num{background:rgba(71,214,126,.15);border-color:rgba(71,214,126,.4);color:var(--green)}
+.step-title{font-family:'Unbounded',sans-serif;font-size:.85rem;font-weight:600;letter-spacing:.02em}
+.step-subtitle{font-size:12px;color:var(--muted);margin-top:1px}
+.step-status{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.step-status.scanning{color:var(--orange);display:flex;align-items:center;gap:5px}
+.step-status.done{color:var(--green)}
+.step-status.waiting{color:var(--muted)}
+.blink{width:5px;height:5px;background:var(--orange);border-radius:50%;animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.step-body{padding:1.5rem 1.5rem}
+
+/* INPUTS */
+.s-row{display:flex;gap:8px;margin-bottom:1rem}
+.s-input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--text);font-family:'Onest',sans-serif;outline:none;transition:border .2s}
+.s-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(245,130,10,.06)}
+.s-input::placeholder{color:var(--muted)}
+.s-select{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text);font-family:'Onest',sans-serif;outline:none}
+.filters-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:1rem}
+.f-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:.1em}
+.f-ctrl{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--text);font-family:'Onest',sans-serif;outline:none}
+.f-ctrl:focus{border-color:var(--orange)}
+.f-ctrl option{background:var(--bg3)}
+
+/* BUTTONS */
+.btn-main{background:var(--orange);color:#000;border:none;border-radius:8px;padding:10px 22px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Unbounded',sans-serif;letter-spacing:.06em;text-transform:uppercase;transition:all .2s;white-space:nowrap}
+.btn-main:hover{background:var(--orange2);transform:translateY(-1px)}
+.btn-main:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-main.full{width:100%}
+.btn-ghost{background:transparent;border:1px solid var(--border2);border-radius:6px;padding:6px 12px;font-size:10px;color:var(--muted);cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;transition:all .2s}
+.btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+.btn-next{background:rgba(245,130,10,.1);border:1px solid rgba(245,130,10,.3);border-radius:8px;padding:12px 20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Unbounded',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--orange);transition:all .2s;width:100%;margin-top:1rem;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-next:hover{background:rgba(245,130,10,.18);border-color:rgba(245,130,10,.5)}
+.btn-next::after{content:'↓';font-size:16px}
+
+/* STATUS */
+.status-row{display:none;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:11px 14px;margin-bottom:1rem;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.04em}
+.spinner{width:13px;height:13px;border:1.5px solid var(--border2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-.stats-bar{display:none;justify-content:space-between;align-items:center;margin-bottom:1rem;padding:0.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px}
-.stats-left{font-size:13px;color:var(--muted)}
-.stats-left strong{color:var(--accent);font-family:'DM Mono',monospace}
-.btn-export{background:transparent;border:1px solid var(--border2);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;transition:all 0.2s}
-.btn-export:hover{border-color:var(--accent);color:var(--accent)}
-.posts-grid{display:flex;flex-direction:column;gap:10px}
-.post-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:border-color 0.2s;position:relative;overflow:hidden}
+.err-row{display:none;background:rgba(255,79,79,.06);border:1px solid rgba(255,79,79,.2);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);letter-spacing:.03em;margin-bottom:1rem}
+
+/* TERMINAL */
+.terminal-bar{background:var(--bg2);border:1px solid var(--border2);border-radius:8px 8px 0 0;padding:8px 14px;display:flex;align-items:center;gap:7px;border-bottom:none}
+.t-dots{display:flex;gap:5px}
+.t-dot{width:10px;height:10px;border-radius:50%}
+.t-red{background:#ff5f56}.t-yellow{background:#ffbd2e}.t-green{background:#27c93f}
+.t-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-left:6px}
+.t-live{margin-left:auto;display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:.1em}
+
+/* POST CARDS */
+.posts-grid{display:flex;flex-direction:column;gap:6px}
+.post-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem;transition:border-color .2s;position:relative}
 .post-card:hover{border-color:var(--border2)}
-.post-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:0;transition:opacity 0.2s}
-.post-card:hover::before{opacity:1}
-.post-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;gap:1rem}
-.post-user{font-size:13px;font-family:'DM Mono',monospace;color:var(--accent2)}
-.post-time{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap}
-.post-text{font-size:14px;line-height:1.65;color:var(--text);margin-bottom:1rem;word-break:break-word}
-.post-metrics{display:flex;gap:1.5rem}
-.metric{display:flex;align-items:center;gap:5px;font-size:12px;font-family:'DM Mono',monospace}
-.metric-icon{width:14px;height:14px;opacity:0.5}
-.metric-val{color:var(--text)}
-.metric-label{color:var(--muted)}
-.metric.top .metric-val{color:var(--accent);font-weight:600}
-.rank{position:absolute;top:12px;right:12px;width:24px;height:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted)}
-.rank.gold{background:rgba(232,255,71,0.1);border-color:var(--accent);color:var(--accent)}
-.empty{text-align:center;padding:4rem 2rem;color:var(--muted)}
-.empty p{font-size:14px;margin-top:0.5rem}
-.error-msg{background:rgba(255,71,71,0.08);border:1px solid rgba(255,71,71,0.2);border-radius:10px;padding:1rem;font-size:13px;color:var(--danger);margin-bottom:1rem;display:none}
-@media(max-width:600px){.filters{grid-template-columns:1fr 1fr}main{padding:1rem}header{padding:1rem}}
+.post-card.hot{border-color:rgba(245,130,10,.25);background:rgba(245,130,10,.02)}
+.post-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--orange);opacity:0;border-radius:2px 0 0 2px;transition:opacity .2s}
+.post-card.hot::before{opacity:.7}
+.pc-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;gap:.5rem}
+.pc-user{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue)}
+.pc-user a{color:var(--blue);text-decoration:none}.pc-user a:hover{text-decoration:underline}
+.pc-heat{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:3px;letter-spacing:.08em;text-transform:uppercase}
+.h-hot{background:rgba(245,130,10,.12);color:var(--orange);border:1px solid rgba(245,130,10,.25)}
+.h-mid{background:rgba(91,156,246,.1);color:var(--blue);border:1px solid rgba(91,156,246,.2)}
+.h-low{background:rgba(122,122,140,.08);color:var(--muted);border:1px solid var(--border)}
+.pc-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.pc-text{font-size:13px;line-height:1.65;color:var(--text);margin-bottom:.7rem}
+.pc-stats{display:flex;gap:1.2rem}
+.pc-stat{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.pc-stat.top{color:var(--orange)}
+.pc-rank{position:absolute;top:10px;right:10px;font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;border-radius:3px;background:var(--bg2);border:1px solid var(--border);color:var(--muted)}
+.pc-rank.gold{background:rgba(245,130,10,.08);border-color:rgba(245,130,10,.3);color:var(--orange)}
+
+/* EXTRACTED THEMES */
+.themes-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:1rem;margin-top:1rem}
+.themes-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:6px}
+.themes-title::before{content:'——';letter-spacing:-.1em}
+.themes-chips{display:flex;flex-wrap:wrap;gap:6px}
+.theme-chip{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:var(--bg3);color:var(--muted2);font-family:'JetBrains Mono',monospace;letter-spacing:.03em;cursor:pointer;transition:all .15s}
+.theme-chip:hover{border-color:var(--orange);color:var(--orange)}
+.theme-chip.picked{background:rgba(245,130,10,.1);border-color:rgba(245,130,10,.4);color:var(--orange)}
+
+/* STEP 2 — HOOKS */
+.hooks-context{background:var(--bg2);border:1px solid rgba(245,130,10,.15);border-radius:8px;padding:.9rem 1rem;margin-bottom:1rem;display:flex;align-items:flex-start;gap:10px}
+.hooks-context-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.hooks-context-body{flex:1}
+.hooks-context-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--orange);letter-spacing:.12em;text-transform:uppercase;margin-bottom:3px}
+.hooks-context-text{font-size:13px;color:var(--muted2);line-height:1.5}
+.hooks-list{display:flex;flex-direction:column;gap:6px}
+.hook-row{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:all .15s;display:flex;align-items:flex-start;gap:10px}
+.hook-row:hover{border-color:var(--border2);background:var(--bg2)}
+.hook-row.selected{background:rgba(245,130,10,.06);border-color:rgba(245,130,10,.3)}
+.hook-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);min-width:18px;padding-top:2px}
+.hook-content{flex:1}
+.hook-main-text{font-size:14px;font-weight:500;color:var(--text);line-height:1.5;margin-bottom:3px}
+.hook-why{font-size:11px;color:var(--muted)}
+.hook-type-tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:3px;letter-spacing:.08em;text-transform:uppercase;flex-shrink:0;margin-top:2px}
+.ht-pain{background:rgba(255,79,79,.1);color:#ff8a8a;border:1px solid rgba(255,79,79,.2)}
+.ht-prov{background:rgba(245,130,10,.1);color:var(--orange);border:1px solid rgba(245,130,10,.2)}
+.ht-conf{background:rgba(71,214,126,.1);color:var(--green);border:1px solid rgba(71,214,126,.2)}
+.ht-quest{background:rgba(91,156,246,.1);color:var(--blue);border:1px solid rgba(91,156,246,.2)}
+.ht-intr{background:rgba(196,144,255,.1);color:var(--purple);border:1px solid rgba(196,144,255,.2)}
+.ht-myth{background:rgba(168,237,234,.1);color:#a8edea;border:1px solid rgba(168,237,234,.2)}
+.ht-list{background:rgba(255,214,102,.1);color:#ffd666;border:1px solid rgba(255,214,102,.2)}
+
+/* STEP 3 — ADAPTER */
+.adapter-context{background:var(--bg2);border:1px solid rgba(71,214,126,.15);border-radius:8px;padding:.9rem 1rem;margin-bottom:1rem}
+.adapter-context-label{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.adapter-context-label::before{content:'✓'}
+.ca-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+.ca-field label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;display:block}
+.ca-field input,.ca-field select,.ca-field textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:8px 11px;font-size:13px;color:var(--text);font-family:'Onest',sans-serif;outline:none;transition:border .2s}
+.ca-field input:focus,.ca-field select:focus,.ca-field textarea:focus{border-color:var(--orange)}
+.ca-field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.adapted-list{display:flex;flex-direction:column;gap:8px}
+.adapted-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .15s;position:relative}
+.adapted-card:hover{border-color:var(--border2)}
+.adapted-card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.adapted-card-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.adapted-angle-tag{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 8px;border-radius:3px;letter-spacing:.1em;text-transform:uppercase;border:1px solid}
+.adapted-trend{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.04em}
+.adapted-trend::before{content:'✦ ';color:var(--orange)}
+.adapted-text{font-size:14px;line-height:1.7;color:var(--text);margin-bottom:6px}
+.adapted-why{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.adapted-why::before{content:'→';color:var(--orange);font-family:'JetBrains Mono',monospace}
+.copy-hint{position:absolute;top:10px;right:12px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);opacity:0;transition:opacity .2s;letter-spacing:.06em;text-transform:uppercase}
+.adapted-card:hover .copy-hint{opacity:1}
+
+/* RESULTS BAR */
+.r-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem}
+.r-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+.r-count strong{color:var(--orange)}
+.r-actions{display:flex;gap:6px}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--bg2);border:1px solid var(--orange);color:var(--orange);padding:9px 16px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:0;transform:translateY(6px);transition:all .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+
+@media(max-width:700px){
+  .filters-row{grid-template-columns:1fr 1fr}
+  .ca-grid{grid-template-columns:1fr}
+  main{padding:1rem}header{padding:0 1rem}
+}
 </style>
 </head>
 <body>
+
 <header>
-  <div class="logo">
-    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="10" cy="10" r="8" stroke="#000" stroke-width="2"/>
-      <path d="M7 10h6M10 7v6" stroke="#000" stroke-width="2" stroke-linecap="round"/>
-    </svg>
+  <div class="h-inner">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <div class="logo-name">Scout<span>.</span>Threads</div>
+    </div>
+    <div class="h-badge">Pipeline · AI</div>
   </div>
-  <h1>Threads <span>Scanner</span></h1>
-  <div class="badge">real-time scraper</div>
 </header>
+
 <main>
-  <div class="search-panel">
-    <div class="search-row">
-      <input class="search-input" id="queryInput" type="text" placeholder="Поисковое слово или фраза..." autocomplete="off"/>
-      <button class="btn-search" id="searchBtn" onclick="doSearch()">Искать</button>
+
+<!-- ══════════ STEP 1 — SCANNER ══════════ -->
+<div class="step" id="step1">
+  <div class="step-card active" id="card1">
+    <div class="step-head" onclick="toggleStep(1)">
+      <div class="step-num">01</div>
+      <div>
+        <div class="step-title">Сканер Threads</div>
+        <div class="step-subtitle">Ищем посты по ключевому слову и извлекаем горячие темы</div>
+      </div>
+      <div class="step-status scanning" id="s1-status"><span class="blink"></span>ГОТОВ</div>
     </div>
-    <div class="filters">
-      <div class="filter-group">
-        <label>Сортировка</label>
-        <select id="sortSelect">
-          <option value="top">По популярности</option>
-          <option value="recent">По времени</option>
-        </select>
+    <div class="step-body" id="body1">
+      <div class="terminal-bar">
+        <div class="t-dots"><div class="t-dot t-red"></div><div class="t-dot t-yellow"></div><div class="t-dot t-green"></div></div>
+        <div class="t-label">scout.threads — live feed</div>
+        <div class="t-live"><div class="blink"></div>SCANNING</div>
       </div>
-      <div class="filter-group">
-        <label>Лимит</label>
-        <input type="number" id="limitInput" value="20" min="5" max="100"/>
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:0 0 10px 10px;padding:1.25rem;margin-bottom:1rem;">
+        <div class="s-row">
+          <input class="s-input" id="q1" type="text" placeholder="Ключевое слово или фраза..." autocomplete="off"/>
+          <select class="s-select" id="sort1"><option value="top">По популярности</option><option value="recent">По времени</option></select>
+          <button class="btn-main" id="btn-scan" onclick="doScan()">Сканировать</button>
+        </div>
+        <div class="filters-row">
+          <div><label class="f-label">Лимит</label><input class="f-ctrl" type="number" id="lim1" value="20" min="5" max="50"/></div>
+          <div><label class="f-label">Ниша</label>
+            <select class="f-ctrl" id="niche1">
+              <option value="psycho">Психологи / коучи</option>
+              <option value="esoteric">Эзотерика / астро</option>
+              <option value="business">Бизнес / маркетинг</option>
+              <option value="all">Все ниши</option>
+            </select>
+          </div>
+          <div><label class="f-label">Дата от</label><input class="f-ctrl" type="date" id="df1"/></div>
+          <div><label class="f-label">Дата до</label><input class="f-ctrl" type="date" id="dt1"/></div>
+        </div>
       </div>
-      <div class="filter-group">
-        <label>Дата от</label>
-        <input type="date" id="dateFrom"/>
-      </div>
-      <div class="filter-group">
-        <label>Дата до</label>
-        <input type="date" id="dateTo"/>
+
+      <div class="status-row" id="st1"><div class="spinner"></div><span id="st1-text">Инициализация...</span></div>
+      <div class="err-row" id="er1"></div>
+
+      <div id="scan-results" style="display:none">
+        <div class="r-bar">
+          <div class="r-count">Найдено: <strong id="cnt1">0</strong> постов</div>
+          <div class="r-actions">
+            <button class="btn-ghost" onclick="exportCSV()">↓ CSV</button>
+            <button class="btn-ghost" onclick="doScan()">Обновить</button>
+          </div>
+        </div>
+        <div class="posts-grid" id="posts1"></div>
+
+        <div class="themes-panel">
+          <div class="themes-title">Извлечённые темы — передадутся в Шаг 2</div>
+          <div class="themes-chips" id="themes1"></div>
+        </div>
+
+        <button class="btn-next" id="btn-to-step2" onclick="goToStep2()">
+          Передать темы в генератор хуков
+        </button>
       </div>
     </div>
   </div>
-  <div class="status" id="status">
-    <div class="spinner"></div>
-    <span id="statusText">Открываю Threads...</span>
+</div>
+
+<div class="step-connector" id="conn1">
+  <div class="step-connector-line"></div>
+  <div class="step-connector-arrow">▼</div>
+</div>
+
+<!-- ══════════ STEP 2 — HOOKS ══════════ -->
+<div class="step" id="step2">
+  <div class="step-card locked" id="card2">
+    <div class="step-head" onclick="toggleStep(2)">
+      <div class="step-num">02</div>
+      <div>
+        <div class="step-title">Генератор хуков</div>
+        <div class="step-subtitle">7 вирусных хуков с разных углов зрения под алгоритм Threads</div>
+      </div>
+      <div class="step-status waiting" id="s2-status">ОЖИДАЕТ</div>
+    </div>
+    <div class="step-body" id="body2" style="display:none">
+
+      <div class="hooks-context" id="hooks-ctx">
+        <div class="hooks-context-icon">📡</div>
+        <div class="hooks-context-body">
+          <div class="hooks-context-label">Контекст из Шага 1</div>
+          <div class="hooks-context-text" id="ctx-text">—</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:1rem;">
+        <input class="s-input" id="extra-kw" placeholder="Добавить свои слова (необязательно)..." style="flex:1"/>
+        <button class="btn-main" id="btn-hooks" onclick="generateHooks()">Сгенерировать 7 хуков</button>
+      </div>
+
+      <div class="status-row" id="st2"><div class="spinner"></div><span id="st2-text">Анализирую темы...</span></div>
+      <div class="err-row" id="er2"></div>
+
+      <div id="hooks-results" style="display:none">
+        <div class="r-bar">
+          <div class="r-count">7 хуков — <strong>нажмите чтобы выбрать</strong></div>
+          <div class="r-actions">
+            <button class="btn-ghost" onclick="copyAllHooks()">Копировать все</button>
+            <button class="btn-ghost" onclick="generateHooks()">Обновить</button>
+          </div>
+        </div>
+        <div class="hooks-list" id="hooks-list"></div>
+        <button class="btn-next" id="btn-to-step3" onclick="goToStep3()">
+          Передать выбранные хуки в адаптер ЦА
+        </button>
+      </div>
+
+    </div>
   </div>
-  <div class="error-msg" id="errorMsg"></div>
-  <div class="stats-bar" id="statsBar">
-    <div class="stats-left">Найдено: <strong id="totalCount">0</strong> постов</div>
-    <button class="btn-export" onclick="exportCSV()">↓ Экспорт CSV</button>
+</div>
+
+<div class="step-connector" id="conn2">
+  <div class="step-connector-line"></div>
+  <div class="step-connector-arrow">▼</div>
+</div>
+
+<!-- ══════════ STEP 3 — ADAPTER ══════════ -->
+<div class="step" id="step3">
+  <div class="step-card locked" id="card3">
+    <div class="step-head" onclick="toggleStep(3)">
+      <div class="step-num">03</div>
+      <div>
+        <div class="step-title">Адаптер под вашу ЦА</div>
+        <div class="step-subtitle">Готовые посты под разные углы, написанные голосом вашей аудитории</div>
+      </div>
+      <div class="step-status waiting" id="s3-status">ОЖИДАЕТ</div>
+    </div>
+    <div class="step-body" id="body3" style="display:none">
+
+      <div class="adapter-context" id="adapter-ctx">
+        <div class="adapter-context-label">Выбранные хуки из Шага 2</div>
+        <div id="ctx-hooks-preview" style="font-size:13px;color:var(--muted2);line-height:1.6;">—</div>
+      </div>
+
+      <div class="ca-grid">
+        <div class="ca-field">
+          <label>Ваша ЦА (кто она)</label>
+          <textarea id="ca-who" placeholder="Женщины 28-45, психологи, коучи, работают онлайн..."></textarea>
+        </div>
+        <div class="ca-field">
+          <label>Её главная боль</label>
+          <input id="ca-pain" type="text" placeholder="Устала отдавать, не получая"/>
+        </div>
+        <div class="ca-field">
+          <label>Её главное желание</label>
+          <input id="ca-desire" type="text" placeholder="Зарабатывать легко, не выгорать"/>
+        </div>
+        <div class="ca-field">
+          <label>Ваш тон голоса</label>
+          <select id="ca-tone">
+            <option value="warm">Тёплый, поддерживающий</option>
+            <option value="expert">Экспертный, уверенный</option>
+            <option value="provocative">Провокационный, дерзкий</option>
+            <option value="story">Storytelling, личный</option>
+            <option value="simple">Простой, разговорный</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-main full" id="btn-adapt" onclick="generateAdapted()">Адаптировать под мою ЦА →</button>
+
+      <div class="status-row" id="st3"><div class="spinner"></div><span id="st3-text">Адаптирую...</span></div>
+      <div class="err-row" id="er3"></div>
+
+      <div id="adapted-results" style="display:none;margin-top:1rem;">
+        <div class="r-bar">
+          <div class="r-count"><strong id="cnt3">0</strong> постов готовы — нажмите чтобы скопировать</div>
+          <div class="r-actions">
+            <button class="btn-ghost" onclick="copyAllAdapted()">Копировать все</button>
+            <button class="btn-ghost" onclick="generateAdapted()">Обновить</button>
+          </div>
+        </div>
+        <div class="adapted-list" id="adapted-list"></div>
+      </div>
+
+    </div>
   </div>
-  <div class="posts-grid" id="postsGrid"></div>
+</div>
+
 </main>
+<div class="toast" id="toast"></div>
+
 <script>
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+const STATE = {
+  query: '',
+  niche: 'psycho',
+  posts: [],
+  extractedThemes: [],
+  pickedThemes: [],
+  hooks: [],
+  pickedHooks: [],
+  adapted: [],
+};
+
+const NICHES = {
+  psycho: 'психологи, коучи, терапевты. Язык аудитории: тревога, ресурс, границы, травма, внутренний ребёнок, принятие, паттерны, выгорание. Клиенты говорят: «я не могу», «мне плохо», «устала», «никто не понимает»',
+  esoteric: 'эзотерика, астрология, нумерология, таро. Язык: энергия, вибрация, Вселенная, знаки, Луна, манифестация, душа. Клиенты: «знак свыше», «случайностей нет», «чувствую»',
+  business: 'бизнес, маркетинг, SMM, эксперты. Язык: заявки, продажи, воронка, конверсия, кейс, доход. Клиенты: «хочу зарабатывать», «нет клиентов», «не умею продавать»',
+  all: 'психологи/коучи, эзотерика/астрология, бизнес/маркетинг — все три аудитории'
+};
+
+const ANGLES = [
+  {id:'pain',    name:'Боль',       cls:'ht-pain',  color:'#ff8a8a', border:'rgba(255,79,79,.3)'},
+  {id:'prov',    name:'Провокация', cls:'ht-prov',  color:'#f5820a', border:'rgba(245,130,10,.3)'},
+  {id:'conf',    name:'Признание',  cls:'ht-conf',  color:'#47d67e', border:'rgba(71,214,126,.3)'},
+  {id:'quest',   name:'Вопрос',     cls:'ht-quest', color:'#5b9cf6', border:'rgba(91,156,246,.3)'},
+  {id:'intr',    name:'Интрига',    cls:'ht-intr',  color:'#c490ff', border:'rgba(196,144,255,.3)'},
+  {id:'myth',    name:'Миф',        cls:'ht-myth',  color:'#a8edea', border:'rgba(168,237,234,.3)'},
+  {id:'list',    name:'Список',     cls:'ht-list',  color:'#ffd666', border:'rgba(255,214,102,.3)'},
+];
+
+// ══════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function fNum(n){if(!n)return'0';return n>=1000?(n/1000).toFixed(1)+'k':String(n)}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+function copyTxt(text){navigator.clipboard.writeText(text).then(()=>showToast('Скопировано!'))}
+
+function setStatus(id, show, text=''){
+  const el=document.getElementById('st'+id);
+  el.style.display=show?'flex':'none';
+  if(text) document.getElementById('st'+id+'-text').textContent=text;
+}
+function setErr(id, msg){
+  const el=document.getElementById('er'+id);
+  if(msg){el.textContent='// '+msg;el.style.display='block';}
+  else el.style.display='none';
+}
+
+function toggleStep(n){
+  const body=document.getElementById('body'+n);
+  const card=document.getElementById('card'+n);
+  if(card.classList.contains('locked')) return;
+  body.style.display = body.style.display==='none' ? 'block' : 'none';
+}
+
+function unlockStep(n){
+  const card=document.getElementById('card'+n);
+  card.classList.remove('locked');
+  document.getElementById('body'+n).style.display='block';
+  document.getElementById('conn'+(n-1)).classList.add('active');
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function markDone(n, summary){
+  const card=document.getElementById('card'+n);
+  card.classList.remove('active');
+  card.classList.add('done');
+  const st=document.getElementById('s'+n+'-status');
+  st.className='step-status done';
+  st.textContent='ГОТОВО';
+}
+
+// ══════════════════════════════════════
+// STEP 1 — SCANNER
+// ══════════════════════════════════════
+const scanMsgs=['Запускаю агент...','Открываю Threads...','Перехватываю данные...','Загружаю посты...','Извлекаю темы...'];
+let scanIv;
 let lastResults=[];
-function formatDate(iso){if(!iso)return'—';try{const d=new Date(iso);return d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}catch{return iso;}}
-function formatNum(n){if(n===undefined||n===null)return'0';if(n>=1000)return(n/1000).toFixed(1)+'k';return String(n);}
-function escHtml(str){return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function renderPost(post,rank){const isTop=rank===1;return`<div class="post-card"><div class="rank ${isTop?'gold':''}">${rank}</div><div class="post-header"><span class="post-user">${post.username?'@'+post.username:'threads'}</span><span class="post-time">${formatDate(post.timestamp)}</span></div><div class="post-text">${escHtml(post.text)}</div><div class="post-metrics"><div class="metric ${isTop?'top':''}"><svg class="metric-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg><span class="metric-val">${formatNum(post.like_count)}</span><span class="metric-label">лайков</span></div><div class="metric"><svg class="metric-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span class="metric-val">${formatNum(post.reply_count)}</span><span class="metric-label">ответов</span></div><div class="metric"><svg class="metric-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg><span class="metric-val">${formatNum(post.repost_count)}</span><span class="metric-label">репостов</span></div></div></div>`;}
-const statusMsgs=['Открываю Threads...','Загружаю страницу поиска...','Перехватываю GraphQL запросы...','Скроллю для загрузки постов...','Фильтрую и сортирую результаты...'];
-let statusInterval;
-async function doSearch(){const q=document.getElementById('queryInput').value.trim();if(!q){document.getElementById('queryInput').focus();return;}const sort=document.getElementById('sortSelect').value;const limit=document.getElementById('limitInput').value||20;const dateFrom=document.getElementById('dateFrom').value;const dateTo=document.getElementById('dateTo').value;document.getElementById('searchBtn').disabled=true;document.getElementById('searchBtn').textContent='Ищу...';document.getElementById('status').style.display='flex';document.getElementById('statsBar').style.display='none';document.getElementById('postsGrid').innerHTML='';document.getElementById('errorMsg').style.display='none';let si=0;document.getElementById('statusText').textContent=statusMsgs[0];statusInterval=setInterval(()=>{si=(si+1)%statusMsgs.length;document.getElementById('statusText').textContent=statusMsgs[si];},2000);try{let url=`/api/search?q=${encodeURIComponent(q)}&sort=${sort}&limit=${limit}`;if(dateFrom)url+=`&date_from=${dateFrom}`;if(dateTo)url+=`&date_to=${dateTo}`;const resp=await fetch(url);const data=await resp.json();clearInterval(statusInterval);document.getElementById('status').style.display='none';if(data.error){document.getElementById('errorMsg').textContent=data.error;document.getElementById('errorMsg').style.display='block';}else{lastResults=data.posts||[];document.getElementById('totalCount').textContent=data.total;document.getElementById('statsBar').style.display='flex';if(lastResults.length===0){document.getElementById('postsGrid').innerHTML=`<div class="empty"><div style="font-size:2rem;margin-bottom:0.5rem">🔍</div><p>Постов не найдено. Попробуй другой запрос.</p></div>`;}else{document.getElementById('postsGrid').innerHTML=lastResults.map((p,i)=>renderPost(p,i+1)).join('');}}}catch(e){clearInterval(statusInterval);document.getElementById('status').style.display='none';document.getElementById('errorMsg').textContent='Ошибка соединения с сервером: '+e.message;document.getElementById('errorMsg').style.display='block';}document.getElementById('searchBtn').disabled=false;document.getElementById('searchBtn').textContent='Искать';}
-function exportCSV(){if(!lastResults.length)return;const header=['rank','username','text','like_count','reply_count','repost_count','timestamp'];const rows=lastResults.map((p,i)=>[i+1,p.username||'"'+(p.text||'').replace(/"/g,'""')+'"',p.like_count||0,p.reply_count||0,p.repost_count||0,p.timestamp||'']);const csv=[header,...rows].map(r=>r.join(',')).join('\n');const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`threads_${document.getElementById('queryInput').value}_${Date.now()}.csv`;a.click();}
-document.getElementById('queryInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
+
+function getHeat(n){
+  if(n>=50) return{cls:'h-hot',label:'HOT'};
+  if(n>=15) return{cls:'h-mid',label:'СР.'};
+  return{cls:'h-low',label:'НИЗ.'};
+}
+
+function renderPost(p,i){
+  const heat=getHeat(p.like_count||0);
+  const isTop=i<3;
+  const userStr=p.url?`<a href="${esc(p.url)}" target="_blank">@${esc(p.username||'threads')}</a>`:`@${esc(p.username||'threads')}`;
+  return `<div class="post-card${isTop?' hot':''}">
+    <div class="pc-rank${isTop?' gold':''}">${i+1}</div>
+    <div class="pc-meta">
+      <span class="pc-user">${userStr}</span>
+      <span class="pc-heat ${heat.cls}">${heat.label}</span>
+      <span class="pc-time">${p.timestamp||'—'}</span>
+    </div>
+    <div class="pc-text">${esc(p.text)}</div>
+    <div class="pc-stats">
+      <span class="pc-stat${isTop?' top':''}">♥ ${fNum(p.like_count)} лайков</span>
+      <span class="pc-stat">💬 ${fNum(p.reply_count)} ответов</span>
+      <span class="pc-stat">↺ ${fNum(p.repost_count)} репостов</span>
+    </div>
+  </div>`;
+}
+
+async function doScan(){
+  const q=document.getElementById('q1').value.trim();
+  if(!q){document.getElementById('q1').focus();return;}
+  STATE.query=q;
+  STATE.niche=document.getElementById('niche1').value;
+
+  document.getElementById('btn-scan').disabled=true;
+  document.getElementById('btn-scan').textContent='Сканирую...';
+  document.getElementById('scan-results').style.display='none';
+  setErr(1,'');
+  setStatus(1,true,scanMsgs[0]);
+
+  let si=0;
+  scanIv=setInterval(()=>{si=(si+1)%scanMsgs.length;setStatus(1,true,scanMsgs[si]);},2000);
+
+  try{
+    const sort=document.getElementById('sort1').value;
+    const lim=document.getElementById('lim1').value||20;
+    const df=document.getElementById('df1').value;
+    const dt=document.getElementById('dt1').value;
+    let url=`/api/search?q=${encodeURIComponent(q)}&sort=${sort}&limit=${lim}`;
+    if(df)url+=`&date_from=${df}`;
+    if(dt)url+=`&date_to=${dt}`;
+
+    const resp=await fetch(url);
+    const data=await resp.json();
+    clearInterval(scanIv);
+    setStatus(1,false);
+
+    if(data.error){setErr(1,data.error);return;}
+
+    lastResults=data.posts||[];
+    STATE.posts=lastResults;
+    document.getElementById('cnt1').textContent=data.total;
+    document.getElementById('posts1').innerHTML=lastResults.length
+      ? lastResults.map((p,i)=>renderPost(p,i)).join('')
+      : '<div style="text-align:center;padding:2rem;color:var(--muted);font-family:\'JetBrains Mono\',monospace;font-size:12px;">// Постов не найдено</div>';
+
+    // Extract themes via AI
+    await extractThemes(lastResults,q);
+    document.getElementById('scan-results').style.display='block';
+
+  }catch(e){
+    clearInterval(scanIv);
+    setStatus(1,false);
+    setErr(1,'Ошибка соединения: '+e.message);
+  }
+  document.getElementById('btn-scan').disabled=false;
+  document.getElementById('btn-scan').textContent='Сканировать';
+}
+
+async function extractThemes(posts, query){
+  const sample=posts.slice(0,10).map(p=>p.text).join('\n---\n');
+  const prompt=`Ты эксперт по контенту Threads. Проанализируй эти посты найденные по запросу "${query}" и извлеки 12-15 горячих тем/слов-триггеров которые РЕАЛЬНО залетают в этой нише.
+
+Посты:
+${sample}
+
+Верни ТОЛЬКО JSON массив строк — короткие темы/слова (2-4 слова максимум):
+{"themes":["тема 1","тема 2","тема 3",...]}`;
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    const raw=d.content.find(b=>b.type==='text')?.text||'';
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    STATE.extractedThemes=parsed.themes||[];
+    renderThemes(STATE.extractedThemes);
+  }catch(e){
+    // fallback — extract from post texts
+    const words=posts.flatMap(p=>p.text.split(/\s+/)).filter(w=>w.length>4);
+    STATE.extractedThemes=[query,'тревога','выгорание','границы','травма','отношения','стыд','внутренний критик'];
+    renderThemes(STATE.extractedThemes);
+  }
+}
+
+function renderThemes(themes){
+  STATE.pickedThemes=[...themes.slice(0,5)];
+  document.getElementById('themes1').innerHTML=themes.map(t=>
+    `<span class="theme-chip${STATE.pickedThemes.includes(t)?' picked':''}" onclick="toggleTheme(this,'${t.replace(/'/g,"\\'")}')">${t}</span>`
+  ).join('');
+}
+
+function toggleTheme(el,t){
+  const idx=STATE.pickedThemes.indexOf(t);
+  if(idx===-1){STATE.pickedThemes.push(t);el.classList.add('picked');}
+  else{STATE.pickedThemes.splice(idx,1);el.classList.remove('picked');}
+}
+
+function goToStep2(){
+  if(!STATE.pickedThemes.length&&!STATE.extractedThemes.length){showToast('Сначала запустите сканер');return;}
+  markDone(1);
+  unlockStep(2);
+  document.getElementById('card2').classList.add('active');
+  document.getElementById('s2-status').className='step-status scanning';
+  document.getElementById('s2-status').innerHTML='<span class="blink"></span>ГОТОВ';
+
+  const themes=STATE.pickedThemes.length?STATE.pickedThemes:STATE.extractedThemes;
+  document.getElementById('ctx-text').textContent=
+    `Запрос: "${STATE.query}" · Темы: ${themes.slice(0,6).join(', ')}${themes.length>6?'...':''}`;
+}
+
+function exportCSV(){
+  if(!lastResults.length)return;
+  const h=['rank','username','text','like_count','reply_count','repost_count','timestamp','url'];
+  const rows=lastResults.map((p,i)=>[i+1,p.username||'','"'+(p.text||'').replace(/"/g,'""')+'"',p.like_count||0,p.reply_count||0,p.repost_count||0,p.timestamp||'',p.url||'']);
+  const csv=[h,...rows].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`threads_${STATE.query}_${Date.now()}.csv`;a.click();
+}
+
+document.getElementById('q1').addEventListener('keydown',e=>{if(e.key==='Enter')doScan()});
+
+// ══════════════════════════════════════
+// STEP 2 — HOOKS
+// ══════════════════════════════════════
+const hookMsgs=['Анализирую темы...','Изучаю алгоритм Threads...','Строю углы зрения...','Калибрую под нишу...','Финальная обработка...'];
+
+async function generateHooks(){
+  const themes=STATE.pickedThemes.length?STATE.pickedThemes:STATE.extractedThemes;
+  const extra=document.getElementById('extra-kw').value.trim();
+  const niche=document.getElementById('niche1').value;
+
+  document.getElementById('btn-hooks').disabled=true;
+  document.getElementById('btn-hooks').textContent='Генерирую...';
+  document.getElementById('hooks-results').style.display='none';
+  setErr(2,'');
+  setStatus(2,true,hookMsgs[0]);
+
+  let mi=0;
+  const iv=setInterval(()=>{setStatus(2,true,hookMsgs[++mi%hookMsgs.length]);},1300);
+
+  const prompt=`Ты AI-агент «Разведчик» — эксперт по вирусному контенту Threads 2025.
+
+НИША: ${NICHES[niche]}
+ЗАПРОС ПОЛЬЗОВАТЕЛЯ: "${STATE.query}"
+ГОРЯЧИЕ ТЕМЫ из реальных постов Threads: ${themes.join(', ')}${extra?'\nДоп. слова: '+extra:''}
+
+АЛГОРИТМ THREADS 2025:
+— Продвигает посты вызывающие комментарии в первые 30 минут
+— Короткие хуки (до 150 символов) с высоким узнаванием
+— Разговорный живой язык аудитории, НЕ экспертный
+— Эмоция + вопрос или CTA в конце
+
+ЗАДАЧА: Создай ровно 7 вирусных ХУКОВ для Threads по ОДНОЙ теме "${STATE.query}" но с разных углов зрения. Каждый хук — это первые 1-2 предложения поста.
+
+Углы (строго по порядку):
+1. БОЛЬ — узнавание «это про меня»
+2. ПРОВОКАЦИЯ — спорное/непопулярное мнение
+3. ПРИЗНАНИЕ — личное «я раньше думала...»
+4. ВОПРОС — триггерный вопрос к аудитории
+5. ИНТРИГА — «расскажу то, о чём молчат»
+6. МИФ — «на самом деле всё не так»
+7. СПИСОК — «3 признака / 3 ошибки / 3 правды»
+
+ТОЛЬКО JSON:
+{"hooks":[
+  {"angle":"боль","angle_id":"pain","text":"хук 1","why":"почему зайдёт"},
+  {"angle":"провокация","angle_id":"prov","text":"хук 2","why":"..."},
+  {"angle":"признание","angle_id":"conf","text":"хук 3","why":"..."},
+  {"angle":"вопрос","angle_id":"quest","text":"хук 4","why":"..."},
+  {"angle":"интрига","angle_id":"intr","text":"хук 5","why":"..."},
+  {"angle":"миф","angle_id":"myth","text":"хук 6","why":"..."},
+  {"angle":"список","angle_id":"list","text":"хук 7","why":"..."}
+]}`;
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    const raw=d.content.find(b=>b.type==='text')?.text||'';
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    STATE.hooks=parsed.hooks;
+    STATE.pickedHooks=parsed.hooks.map(h=>h.text);
+    clearInterval(iv);
+    setStatus(2,false);
+    renderHooks(parsed.hooks);
+    document.getElementById('hooks-results').style.display='block';
+  }catch(e){
+    clearInterval(iv);
+    setStatus(2,false);
+    setErr(2,'Ошибка генерации. Попробуйте ещё раз.');
+  }
+  document.getElementById('btn-hooks').disabled=false;
+  document.getElementById('btn-hooks').textContent='Сгенерировать 7 хуков';
+}
+
+function renderHooks(hooks){
+  document.getElementById('hooks-list').innerHTML=hooks.map((h,i)=>{
+    const angle=ANGLES.find(a=>a.id===h.angle_id)||ANGLES[i];
+    const selected=STATE.pickedHooks.includes(h.text);
+    return `<div class="hook-row${selected?' selected':''}" onclick="toggleHook(this,'${h.text.replace(/'/g,"\\'").replace(/\n/g,'\\n')}')">
+      <div class="hook-num">0${i+1}</div>
+      <div class="hook-content">
+        <div class="hook-main-text">"${esc(h.text)}"</div>
+        <div class="hook-why">${esc(h.why)}</div>
+      </div>
+      <span class="hook-type-tag ${angle.cls}">${angle.name}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleHook(el,text){
+  const idx=STATE.pickedHooks.indexOf(text);
+  if(idx===-1){STATE.pickedHooks.push(text);el.classList.add('selected');}
+  else{STATE.pickedHooks.splice(idx,1);el.classList.remove('selected');}
+}
+
+function copyAllHooks(){
+  const text=STATE.hooks.map((h,i)=>`${i+1}. [${h.angle}]\n"${h.text}"\n→ ${h.why}`).join('\n\n');
+  copyTxt(text);
+}
+
+function goToStep3(){
+  if(!STATE.hooks.length){showToast('Сначала сгенерируйте хуки');return;}
+  markDone(2);
+  unlockStep(3);
+  document.getElementById('card3').classList.add('active');
+  document.getElementById('s3-status').className='step-status scanning';
+  document.getElementById('s3-status').innerHTML='<span class="blink"></span>ГОТОВ';
+
+  const picked=STATE.pickedHooks.length?STATE.pickedHooks:STATE.hooks.map(h=>h.text);
+  document.getElementById('ctx-hooks-preview').innerHTML=
+    picked.slice(0,3).map((h,i)=>`<span style="display:block;margin-bottom:3px;">${i+1}. "${esc(h)}"</span>`).join('')
+    +(picked.length>3?`<span style="color:var(--muted);font-size:11px;">...и ещё ${picked.length-3}</span>`:'');
+}
+
+// ══════════════════════════════════════
+// STEP 3 — ADAPTER
+// ══════════════════════════════════════
+const adaptMsgs=['Анализирую ЦА...','Мэтчу с трендами Threads...','Адаптирую голос...','Финальная калибровка...'];
+
+async function generateAdapted(){
+  const who=document.getElementById('ca-who').value.trim();
+  const pain=document.getElementById('ca-pain').value.trim();
+  const desire=document.getElementById('ca-desire').value.trim();
+  const tone=document.getElementById('ca-tone').value;
+  const niche=document.getElementById('niche1').value;
+
+  const hooksToUse=STATE.pickedHooks.length?STATE.pickedHooks:STATE.hooks.map(h=>h.text);
+  if(!hooksToUse.length){showToast('Сначала выполните Шаг 2');return;}
+
+  document.getElementById('btn-adapt').disabled=true;
+  document.getElementById('btn-adapt').textContent='Адаптирую...';
+  document.getElementById('adapted-results').style.display='none';
+  setErr(3,'');
+  setStatus(3,true,adaptMsgs[0]);
+
+  let mi=0;
+  const iv=setInterval(()=>{setStatus(3,true,adaptMsgs[++mi%adaptMsgs.length]);},1400);
+
+  const toneDesc={
+    warm:'тёплый, поддерживающий, как лучшая подруга',
+    expert:'уверенный, экспертный, с позиции знания',
+    provocative:'дерзкий, провокационный, ломающий шаблоны',
+    story:'через личную историю, живой, человечный',
+    simple:'простой, разговорный, без умных слов'
+  };
+
+  const themes=STATE.pickedThemes.length?STATE.pickedThemes:STATE.extractedThemes;
+
+  const prompt=`Ты AI-агент по созданию вирусного контента для Threads 2025.
+
+НИША: ${NICHES[niche]}
+ЗАПРОС: "${STATE.query}"
+ГОРЯЧИЕ ТЕМЫ: ${themes.join(', ')}
+ТОН ГОЛОСА: ${toneDesc[tone]}
+${who?'ЦА: '+who:''}${pain?'\nБОЛЬ ЦА: '+pain:''}${desire?'\nЖЕЛАНИЕ ЦА: '+desire:''}
+
+ХУКИ из Шага 2 (адаптируй каждый в полноценный пост):
+${hooksToUse.map((h,i)=>`${i+1}. "${h}"`).join('\n')}
+
+ЗАДАЧА: Для каждого хука создай готовый короткий пост для Threads (3-6 предложений, до 400 символов). Каждый пост должен:
+— Начинаться с хука дословно
+— Раскрывать тему через боль/опыт/инсайт ЦА
+— Мэтчиться с одной из горячих тем (указать какой)
+— Заканчиваться вопросом или мягким CTA
+— Быть написан голосом: ${toneDesc[tone]}
+— Не быть рекламой, быть органичным
+
+ТОЛЬКО JSON:
+{"posts":[
+${hooksToUse.map((h,i)=>`  {"num":${i+1},"hook":"${h.replace(/"/g,'\\"')}","angle":"${STATE.hooks[i]?.angle||''}","angle_id":"${STATE.hooks[i]?.angle_id||'pain'}","text":"полный пост","trend":"мэтч с темой","why":"почему зайдёт в алгоритм"}`).join(',\n')}
+]}`;
+
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    const raw=d.content.find(b=>b.type==='text')?.text||'';
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    STATE.adapted=parsed.posts;
+    clearInterval(iv);
+    setStatus(3,false);
+    renderAdapted(parsed.posts);
+    document.getElementById('cnt3').textContent=parsed.posts.length;
+    document.getElementById('adapted-results').style.display='block';
+    markDone(3);
+  }catch(e){
+    clearInterval(iv);
+    setStatus(3,false);
+    setErr(3,'Ошибка генерации. Попробуйте ещё раз.');
+  }
+  document.getElementById('btn-adapt').disabled=false;
+  document.getElementById('btn-adapt').textContent='Адаптировать под мою ЦА →';
+}
+
+function renderAdapted(posts){
+  document.getElementById('adapted-list').innerHTML=posts.map((p,i)=>{
+    const angle=ANGLES.find(a=>a.id===p.angle_id)||ANGLES[0];
+    return `<div class="adapted-card" onclick="copyTxt('${p.text.replace(/'/g,"\\'").replace(/\n/g,'\\n')}')">
+      <span class="copy-hint">↗ КОПИРОВАТЬ</span>
+      <div class="adapted-card-head">
+        <span class="adapted-card-num">0${i+1}</span>
+        <span class="adapted-angle-tag" style="color:${angle.color};border-color:${angle.border};background:${angle.border.replace('.3)',',.07)')};">${p.angle||angle.name}</span>
+        <span class="adapted-trend">${esc(p.trend||'')}</span>
+      </div>
+      <div class="adapted-text">${esc(p.text).replace(/\n/g,'<br>')}</div>
+      <div class="adapted-why">${esc(p.why||'')}</div>
+    </div>`;
+  }).join('');
+}
+
+function copyAllAdapted(){
+  const text=STATE.adapted.map((p,i)=>`[${p.angle||i+1}]\n\n${p.text}\n\n↳ ${p.trend}`).join('\n\n─────\n\n');
+  copyTxt(text);
+}
 </script>
 </body>
 </html>
