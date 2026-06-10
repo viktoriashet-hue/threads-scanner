@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import httpx
 import asyncio
 from datetime import datetime
@@ -26,6 +27,35 @@ async def root():
         return f.read()
 
 
+# ── AI PROXY ── фронтенд не может напрямую дёргать api.anthropic.com (CORS)
+class AIRequest(BaseModel):
+    messages: list
+    max_tokens: int = 1500
+    model: str = "claude-sonnet-4-20250514"
+
+@app.post("/api/ai")
+async def ai_proxy(req: AIRequest):
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return JSONResponse({"error": "ANTHROPIC_API_KEY not set"}, status_code=500)
+    async with httpx.AsyncClient(timeout=60) as client:
+        resp = await client.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": req.model,
+                "max_tokens": req.max_tokens,
+                "messages": req.messages,
+            }
+        )
+        return JSONResponse(resp.json(), status_code=resp.status_code)
+
+
+# ── SEARCH ──
 @app.get("/api/search")
 async def search(
     q: str = Query(...),
@@ -35,7 +65,6 @@ async def search(
     limit: int = Query(20),
 ):
     async with httpx.AsyncClient(timeout=120) as client:
-
         run_resp = await client.post(
             f"https://api.apify.com/v2/acts/{ACTOR_ID}/runs",
             params={"token": APIFY_TOKEN},
@@ -46,9 +75,8 @@ async def search(
                 "proxyConfiguration": {"useApifyProxy": False}
             }
         )
-
         if run_resp.status_code != 201:
-            return JSONResponse({"error": f"Ошибка запуска: {run_resp.text}", "posts": [], "total": 0})
+            return JSONResponse({"error": f"Не удалось запустить скрапер: {run_resp.text}", "posts": [], "total": 0})
 
         run_id = run_resp.json()["data"]["id"]
 
@@ -62,7 +90,7 @@ async def search(
             if status == "SUCCEEDED":
                 break
             if status in ["FAILED", "ABORTED", "TIMED-OUT"]:
-                return JSONResponse({"error": f"Ошибка: {status}", "posts": [], "total": 0})
+                return JSONResponse({"error": f"Скрапер завершился с ошибкой: {status}", "posts": [], "total": 0})
 
         dataset_id = status_resp.json()["data"]["defaultDatasetId"]
         results_resp = await client.get(
