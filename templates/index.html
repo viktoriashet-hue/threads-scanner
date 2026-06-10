@@ -366,6 +366,7 @@ main{max-width:1000px;margin:0 auto;padding:2rem}
             <option value="provocative">Провокационный, дерзкий</option>
             <option value="story">Storytelling, личный</option>
             <option value="simple">Простой, разговорный</option>
+            <option value="inner">Внутренний диалог ЦА</option>
           </select>
         </div>
       </div>
@@ -770,7 +771,8 @@ async function generateAdapted(){
     expert:'уверенный, экспертный, с позиции знания',
     provocative:'дерзкий, провокационный, ломающий шаблоны',
     story:'через личную историю, живой, человечный',
-    simple:'простой, разговорный, без умных слов'
+    simple:'простой, разговорный, без умных слов',
+    inner:'от первого лица ЦА — внутренний монолог, мысли вслух, как человек говорит сам с собой: "опять я это делаю", "ну почему я не могу", "а вдруг они правы". Живо, узнаваемо, без поучений'
   };
 
   const themes=STATE.pickedThemes.length?STATE.pickedThemes:STATE.extractedThemes;
