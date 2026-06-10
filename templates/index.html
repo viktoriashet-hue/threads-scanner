@@ -563,7 +563,7 @@ ${sample}
 {"themes":["тема 1","тема 2","тема 3",...]}`;
 
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
+    const r=await fetch('/api/ai',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
     });
@@ -672,7 +672,7 @@ async function generateHooks(){
 ]}`;
 
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
+    const r=await fetch('/api/ai',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})
     });
@@ -794,7 +794,7 @@ ${hooksToUse.map((h,i)=>`${i+1}. "${h}"`).join('\n')}
 {"posts":[{"num":1,"angle":"","angle_id":"pain","text":"текст поста","trend":"тема из сканера","why":"почему зайдёт"},{"num":2,"angle":"","angle_id":"prov","text":"...","trend":"...","why":"..."}]}`;
 
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
+    const r=await fetch('/api/ai',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:3000,messages:[{role:'user',content:prompt}]})
     });
